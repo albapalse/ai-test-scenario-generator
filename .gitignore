@@ -1,0 +1,7 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+generated_test_plan.json
+generated_test_plan.md
