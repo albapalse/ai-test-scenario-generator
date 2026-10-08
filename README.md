@@ -51,6 +51,7 @@ cp .env.example .env
 ```
 
 The local `.env` file is ignored by Git and must never be committed.
+An API key is optional when using the free import workflow described below.
 
 ## Usage
 
@@ -69,6 +70,20 @@ python app.py --feature "A reset link expires after 30 minutes and can only be u
 The generated plan is saved as `generated_test_plan.json` for machines and
 `generated_test_plan.md` for human review.
 
+### Free workflow without API credit
+
+An AI assistant can generate JSON that follows the structures in `models.py`.
+The application can then validate, deduplicate, and format that response without
+making a paid API call:
+
+```bash
+python app.py --input-json examples/password_reset_plan.json
+```
+
+This example plan was generated with Codex and then reviewed as part of the
+project. The program rejects malformed responses instead of trusting AI output
+automatically.
+
 ## Tests
 
 The automated tests do not call the AI API or consume API credit:
@@ -77,7 +92,8 @@ The automated tests do not call the AI API or consume API credit:
 pytest
 ```
 
-They verify input validation, duplicate removal, and JSON and Markdown export.
+They verify input validation, AI-response import, rejection of malformed
+responses, duplicate removal, and JSON and Markdown export.
 
 ## How I used AI
 
@@ -90,6 +106,8 @@ for a tester who needs to review and discuss the generated scenarios.
 
 The application also uses an LLM to generate the initial test scenarios. The
 model output is treated as a starting point, not as a finished test plan.
+When API credit is unavailable, the same review pipeline can process a response
+generated interactively with an AI assistant.
 
 ## Limitations
 

@@ -3,6 +3,7 @@ import json
 import pytest
 
 from generator import (
+    load_test_plan,
     remove_duplicate_test_cases,
     save_markdown_test_plan,
     save_test_plan,
@@ -70,3 +71,27 @@ def test_plan_is_saved_as_readable_markdown(tmp_path) -> None:
     assert "## 1. Expired reset link" in report
     assert "### Expected result" in report
     assert "The password is not changed." in report
+
+
+def test_ai_generated_json_can_be_loaded_and_validated(tmp_path) -> None:
+    input_path = tmp_path / "ai-response.json"
+    input_path.write_text(
+        QATestPlan(
+            feature="Password reset link expiration",
+            test_cases=[make_test_case("Expired reset link")],
+        ).model_dump_json(),
+        encoding="utf-8",
+    )
+
+    result = load_test_plan(input_path)
+
+    assert result.feature == "Password reset link expiration"
+    assert len(result.test_cases) == 1
+
+
+def test_invalid_ai_generated_json_is_rejected(tmp_path) -> None:
+    input_path = tmp_path / "invalid-response.json"
+    input_path.write_text('{"unexpected": true}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="not a valid test plan"):
+        load_test_plan(input_path)

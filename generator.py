@@ -40,6 +40,23 @@ def remove_duplicate_test_cases(test_plan: TestPlan) -> TestPlan:
     return test_plan.model_copy(update={"test_cases": unique_cases})
 
 
+def load_test_plan(input_path: str | Path) -> TestPlan:
+    source = Path(input_path)
+    if not source.exists():
+        raise ValueError(f"Input file does not exist: {source}")
+
+    try:
+        test_plan = TestPlan.model_validate_json(
+            source.read_text(encoding="utf-8")
+        )
+    except Exception as error:
+        raise ValueError(
+            "The input file is not a valid test plan."
+        ) from error
+
+    return remove_duplicate_test_cases(test_plan)
+
+
 def generate_test_plan(
     feature_description: str,
     client: OpenAI | None = None,

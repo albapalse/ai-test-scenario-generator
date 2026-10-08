@@ -3,7 +3,12 @@ import os
 
 from dotenv import load_dotenv
 
-from generator import generate_test_plan, save_markdown_test_plan, save_test_plan
+from generator import (
+    generate_test_plan,
+    load_test_plan,
+    save_markdown_test_plan,
+    save_test_plan,
+)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -13,6 +18,13 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--feature",
         help="Feature description. If omitted, the program asks for it interactively.",
+    )
+    parser.add_argument(
+        "--input-json",
+        help=(
+            "Validate and format an AI-generated JSON test plan without "
+            "making an API call."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -31,16 +43,18 @@ def main() -> None:
     load_dotenv()
     args = parse_arguments()
 
-    if not os.getenv("OPENAI_API_KEY"):
+    if not args.input_json and not os.getenv("OPENAI_API_KEY"):
         print("Error: OPENAI_API_KEY is missing. Add it to a local .env file.")
         raise SystemExit(1)
 
-    feature_description = args.feature or input(
-        "Describe the feature you want to test:\n> "
-    )
-
     try:
-        test_plan = generate_test_plan(feature_description)
+        if args.input_json:
+            test_plan = load_test_plan(args.input_json)
+        else:
+            feature_description = args.feature or input(
+                "Describe the feature you want to test:\n> "
+            )
+            test_plan = generate_test_plan(feature_description)
         output_path = save_test_plan(test_plan, args.output)
         markdown_path = save_markdown_test_plan(
             test_plan, args.markdown_output
