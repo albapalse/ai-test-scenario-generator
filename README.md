@@ -1,7 +1,8 @@
 # AI Test Scenario Generator
 
-A small Python tool that converts a feature description into a structured QA
-test plan with the help of a large language model.
+A small Python tool that validates and formats AI-generated QA test plans. It
+can also generate a plan directly from a feature description when API access is
+configured.
 
 The project was created as a practical experiment in AI-assisted QA. It focuses
 on a narrow task: producing an initial checklist that a human tester can review,
@@ -9,7 +10,7 @@ edit, and extend.
 
 ## What it does
 
-- Generates happy-path, negative, edge-case, and accessibility scenarios.
+- Processes AI-generated happy-path, negative, edge-case, and accessibility scenarios.
 - Gives every scenario a priority, preconditions, steps, and an expected result.
 - Uses a typed Pydantic schema to validate the model response.
 - Removes scenarios with duplicate titles.
@@ -24,7 +25,9 @@ edit, and extend.
 ├── generator.py
 ├── models.py
 ├── examples/
-│   └── password_reset.txt
+│   ├── password_reset.txt
+│   ├── password_reset_plan.json
+│   └── password_reset_report.md
 └── tests/
     └── test_generator.py
 ```
@@ -55,6 +58,11 @@ An API key is optional when using the free import workflow described below.
 
 ## Usage
 
+### Optional API workflow
+
+With an API key configured, the tool can request a test plan directly from a
+model. This integration is optional and was not used for the included demo.
+
 Interactive mode:
 
 ```bash
@@ -70,7 +78,7 @@ python app.py --feature "A reset link expires after 30 minutes and can only be u
 The generated plan is saved as `generated_test_plan.json` for machines and
 `generated_test_plan.md` for human review.
 
-### Free workflow without API credit
+### Free workflow used for the demo
 
 An AI assistant can generate JSON that follows the structures in `models.py`.
 The application can then validate, deduplicate, and format that response without
@@ -80,9 +88,14 @@ making a paid API call:
 python app.py --input-json examples/password_reset_plan.json
 ```
 
-This example plan was generated with Codex and then reviewed as part of the
-project. The program rejects malformed responses instead of trusting AI output
-automatically.
+The included example plan was generated with Codex and then reviewed. The
+program rejects malformed responses instead of trusting AI output
+automatically. Its purpose is to automate the preparation and formatting of a
+test plan; it does not execute tests against a real website or mobile app.
+
+You can view the resulting report without running the project:
+
+- [`examples/password_reset_report.md`](examples/password_reset_report.md)
 
 ## Tests
 
@@ -97,17 +110,15 @@ responses, duplicate removal, and JSON and Markdown export.
 
 ## How I used AI
 
-I used Codex as an AI coding assistant to discuss the scope, create an initial
-implementation, and identify useful validation and error-handling cases. I
-reviewed the project structure, ran the tests, and used the resulting project
-to understand how structured model output can support a QA workflow. I chose to
-add a Markdown report because raw JSON is useful for automation but inconvenient
-for a tester who needs to review and discuss the generated scenarios.
+I started with a simple question: could AI create a useful QA checklist without
+being trusted blindly? I used Codex to help me build the first version, and then
+added checks for invalid responses and duplicate test cases. I also added
+Markdown export because reviewing the raw JSON was inconvenient.
 
-The application also uses an LLM to generate the initial test scenarios. The
-model output is treated as a starting point, not as a finished test plan.
-When API credit is unavailable, the same review pipeline can process a response
-generated interactively with an AI assistant.
+The generated scenarios still need human review, especially when the original
+feature description does not include all the product rules. For the included
+demo, Codex generated the initial JSON and the application validated and
+formatted it without making a paid API call.
 
 ## Limitations
 
@@ -115,6 +126,7 @@ generated interactively with an AI assistant.
 - The model does not know undocumented business rules or product history.
 - A valid structure does not guarantee that every scenario is useful or correct.
 - A human tester still needs to review priorities, assumptions, and coverage.
+- The current project prepares test scenarios but does not run UI tests.
 
 ## Possible next steps
 
